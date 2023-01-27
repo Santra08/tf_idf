@@ -1,100 +1,21 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[2]:
-
-
 import pandas as pd
 import numpy as np
 
-
-# In[3]:
-
-
 data=pd.read_csv(r'C:\Users\Fidha\Desktop\Sem3 datasets\india-news-headlines.csv')
 data
-
-
-# In[4]:
-
-
 data.head()
-
-
-# In[5]:
-
-
 data.tail()
-
-
-# In[6]:
-
-
 data.shape
-
-
-# In[7]:
-
-
 data.info()
-
-
-# In[8]:
-
-
 data.describe()
-
-
-# ### DATA PRE-PROCESSING
-
-# In[9]:
-
-
 data.isnull()
-
-
-# In[10]:
-
-
 data.isnull().sum()
-
-
-# In[11]:
-
-
 data.duplicated()
-
-
-# In[12]:
-
-
 data.duplicated().sum()
-
-
-# In[13]:
-
-
 data.drop_duplicates(inplace=True)
-
-
-# In[14]:
-
-
 data.duplicated().sum()
-
-
-# ### TD-IDF
-
-# In[15]:
-
-
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-
-# In[16]:
-
-
-# tfidf calculation
 text_content = data['headline_text']
 vector = TfidfVectorizer(max_df=0.3,         # drop words that occur in more than X percent of documents
                              #min_df=8,      # only use words that appear at least X times
@@ -106,23 +27,27 @@ vector = TfidfVectorizer(max_df=0.3,         # drop words that occur in more tha
                             )
 tfidf = vector.fit_transform(text_content)
 
-
-# In[32]:
-
-
 data = pd.DataFrame(tfidf[0].T.todense(), index = vector.get_feature_names(), columns=["TF-IDF"])
 
 data = df.sort_values('TF-IDF', ascending=False)
 
-
-# In[33]:
-
-
 data
 
+from sklearn.metrics.pairwise import cosine_similarity
 
-# In[ ]:
+def get_similarity(query):
+    query_vec = vector.transform([query])
+    similarity = cosine_similarity(query_vec, tfidf).flatten()
+    return similarity
 
+# Get user query
+query = input("Enter your query: ")
 
-# Distributed,quo, vajpajee, ayodhya are the most important words in this dataset
+# Ranking: Rank the news headlines based on their cosine similarity scores to the user query
+s = get_similarity(query)
+ranking = s.argsort()[:-5:-1]
+
+# Return: Return the top 10 most relevant news headlines
+for i in ranking:
+    print(text_content[i])
 
